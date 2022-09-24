@@ -15,7 +15,9 @@ end
 ---@param n integer key number: 1, 2, 3.
 ---@param z integer key press: 1 - pressed, 0 - unpressed.
 function key(n, z)
-    State:set_key_pressed(n, (z == 1))
+    local pressed = (z == 1)
+    State:set_key_pressed(n, pressed)
+    State:change_context(n, pressed)
     draw(State)
 end
 
@@ -23,6 +25,5 @@ end
 ---@param n integer encoder number: 1, 2, 3.
 ---@param d delta encoder delta, clockwise is positive, counterclockwise is negative.
 function enc(n, d)
-    State:set_enc_value(n, d)
     draw(State)
 end

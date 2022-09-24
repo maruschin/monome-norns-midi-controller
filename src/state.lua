@@ -54,11 +54,56 @@ function GridColumn:new(o)
     return o
 end
 
+---@enum CONTEXT cursor context.
+CONTEXT = {
+    grid = 'grid',
+    ch = 'ch',
+    cc = 'cc',
+    value = 'value',
+}
+
+---@class Cursor
+---@field context CONTEXT
+---@field grid_position Param
+Cursor = {
+    context = CONTEXT.grid,
+    grid_position = Param:new { value = 1, min = 1, max = 4, },
+}
+---@return Cursor
+function Cursor:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function Cursor:up_context()
+    if self.context == CONTEXT.grid then
+        self.context = CONTEXT.ch
+    elseif self.context == CONTEXT.ch then
+        self.context = CONTEXT.cc
+    elseif self.context == CONTEXT.cc then
+        self.context = CONTEXT.value
+    end
+end
+
+function Cursor:down_context()
+    if self.context == CONTEXT.ch then
+        self.context = CONTEXT.grid
+    elseif self.context == CONTEXT.cc then
+        self.context = CONTEXT.ch
+    elseif self.context == CONTEXT.value then
+        self.context = CONTEXT.cc
+    end
+end
+
 ---@class State
 ---@field key table<keys, KeyState> state of keys.
+---@field cursor Cursor
 ---@field grid_columns table<integer, table> column of grid.
 State = {
     key = { KeyState:new(), KeyState:new(), KeyState:new(), },
+    cursor = Cursor:new(),
     grid_columns = {
         GridColumn:new(),
         GridColumn:new(),
@@ -69,19 +114,26 @@ State = {
 ---@return State
 function State:new(o)
     o = o or {}
+    o.cursor = Cursor:new()
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
 ---@param n keys
----@param z boolean
-function State:set_key_pressed(n, z)
-    self.key[n].pressed = z
+---@param pressed boolean
+function State:set_key_pressed(n, pressed)
+    self.key[n].pressed = pressed
 end
 
----@param n encoders
----@param d delta
-function State:set_enc_value(n, d)
-    self.enc[n]:add_value(d)
+---@param n keys
+---@param pressed boolean
+function State:change_context(n, pressed)
+    if pressed then
+        if n == 2 then
+            self.cursor:down_context()
+        elseif n == 3 then
+            self.cursor:up_context()
+        end
+    end
 end
