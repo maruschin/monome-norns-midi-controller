@@ -2,20 +2,11 @@
     Тут какое-то описание 
 ]]
 
+require("src/state")
+
 local function init()
     -- Стейт контроллера
-    State = {
-        key = { { pressed = false }, { pressed = false }, { pressed = false }, },
-        enc = { { value = 0 }, { value = 0 }, { value = 0 } },
-    }
-end
-
-local function set_key_pressed_state(n, z)
-    State.key[n].pressed = (z == 1)
-end
-
-local function set_enc_value_state(n, d)
-    State.enc[n].value = State.enc[n].value + d
+    CState = State:new();
 end
 
 --[[
@@ -25,8 +16,8 @@ end
     z: {1,0} - key press {down,up}.
 ]]
 local function key(n, z)
-    set_key_pressed_state(n, z)
-    print(n, State.key[n].pressed)
+    CState:set_key_pressed(n, z)
+    print(n, CState.key[n].pressed)
 end
 
 --[[
@@ -36,12 +27,11 @@ end
     d: integer - encoder delta, clockwise is positive, counterclockwise is negative.
 ]]
 local function enc(n, d)
-    set_enc_value_state(n, d)
-    print(n, State.enc[n].value)
+    CState:set_enc_value(n, d)
+    print(n, CState.enc[n].value)
 end
 
 init()
-print(State)
 print(key(3, 1))
 print(key(3, 0))
 print(key(2, 1))
