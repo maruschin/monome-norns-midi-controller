@@ -10,21 +10,37 @@
 
 ---@alias delta integer Encoder delta, clockwise is positive, counterclockwise is negative.
 
+---@enum CONTEXT cursor context.
+CONTEXT = {
+    GRID = 'grid',
+    CH = 'ch',
+    CC = 'cc',
+    VALUE = 'value',
+}
+
+---Class for save pressed key state.
 ---@class KeyState
-KeyState = { pressed = false }
+---@field pressed boolean
+KeyState = {}
+---@param o table|nil
 ---@return KeyState
 function KeyState:new(o)
-    o = o or {}
+    o = o or { pressed = false }
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
+---Save param value and settings.
 ---@class Param
-Param = { value = 0, min = 0, max = 127 }
+---@field value integer value of param.
+---@field min integer min of param value.
+---@field max integer max of param value.
+Param = {}
+---@param o table|nil
 ---@return Param
 function Param:new(o)
-    o = o or {}
+    o = o or { value = 0, min = 0, max = 127 }
     setmetatable(o, self)
     self.__index = self
     return o
@@ -46,6 +62,7 @@ GridColumn = {
     cc = Param:new { value = 0, min = 0, max = 119 },
     value = Param:new { value = 0, min = 0, max = 127 },
 }
+---@param o table|nil
 ---@return GridColumn
 function GridColumn:new(o)
     o = o or {}
@@ -54,67 +71,58 @@ function GridColumn:new(o)
     return o
 end
 
----@enum CONTEXT cursor context.
-CONTEXT = {
-    grid = 'grid',
-    ch = 'ch',
-    cc = 'cc',
-    value = 'value',
-}
-
 ---@class Cursor
 ---@field context CONTEXT
 ---@field grid_position Param
-Cursor = {
-    context = CONTEXT.grid,
-    grid_position = Param:new { value = 1, min = 1, max = 4, },
-}
+Cursor = {}
 ---@return Cursor
-function Cursor:new(o)
-    o = o or {}
+function Cursor:new()
+    local o = {
+        context = CONTEXT.GRID,
+        grid_position = Param:new { value = 1, min = 1, max = 4 },
+    }
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
 function Cursor:up_context()
-    if self.context == CONTEXT.grid then
-        self.context = CONTEXT.ch
-    elseif self.context == CONTEXT.ch then
-        self.context = CONTEXT.cc
-    elseif self.context == CONTEXT.cc then
-        self.context = CONTEXT.value
+    if self.context == CONTEXT.GRID then
+        self.context = CONTEXT.CH
+    elseif self.context == CONTEXT.CH then
+        self.context = CONTEXT.CC
+    elseif self.context == CONTEXT.CC then
+        self.context = CONTEXT.VALUE
     end
 end
 
 function Cursor:down_context()
-    if self.context == CONTEXT.ch then
-        self.context = CONTEXT.grid
-    elseif self.context == CONTEXT.cc then
-        self.context = CONTEXT.ch
-    elseif self.context == CONTEXT.value then
-        self.context = CONTEXT.cc
+    if self.context == CONTEXT.CH then
+        self.context = CONTEXT.GRID
+    elseif self.context == CONTEXT.CC then
+        self.context = CONTEXT.CH
+    elseif self.context == CONTEXT.VALUE then
+        self.context = CONTEXT.CC
     end
 end
 
 ---@class State
 ---@field key table<keys, KeyState> state of keys.
 ---@field cursor Cursor
----@field grid_columns table<integer, table> column of grid.
-State = {
-    key = { KeyState:new(), KeyState:new(), KeyState:new(), },
-    cursor = Cursor:new(),
-    grid_columns = {
-        GridColumn:new(),
-        GridColumn:new(),
-        GridColumn:new(),
-        GridColumn:new(),
-    },
-}
+---@field grid_columns table<integer, GridColumn> column of grid.
+State = {}
 ---@return State
-function State:new(o)
-    o = o or {}
-    o.cursor = Cursor:new()
+function State:new()
+    local o = {
+        key = { KeyState:new(), KeyState:new(), KeyState:new(), },
+        cursor = Cursor:new(),
+        grid_columns = {
+            GridColumn:new(),
+            GridColumn:new(),
+            GridColumn:new(),
+            GridColumn:new(),
+        },
+    }
     setmetatable(o, self)
     self.__index = self
     return o
@@ -137,3 +145,25 @@ function State:change_context(n, pressed)
         end
     end
 end
+
+---@param n encoders
+---@param delta integer
+function State:set_value(n, delta)
+    local grid_column_id = self.cursor.grid_position.value
+    local grid_column = self.grid_columns[grid_column_id]
+    if n == 2 then
+        if self.cursor.context == CONTEXT.GRID then
+            self.cursor.grid_position:add_value(delta)
+        elseif self.cursor.context == CONTEXT.CH then
+            grid_column.ch:add_value(delta)
+        elseif self.cursor.context == CONTEXT.CC then
+            grid_column.cc:add_value(delta)
+        elseif self.cursor.context == CONTEXT.VALUE then
+            grid_column.value:add_value(delta)
+        end
+    elseif n == 3 then
+        grid_column.value:add_value(delta)
+    end
+end
+
+return State

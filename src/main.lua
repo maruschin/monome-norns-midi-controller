@@ -1,9 +1,12 @@
 ---@diagnostic disable: lowercase-global
 
-require 'src.state'
+engine = {}
+engine.name = 'Controller'
+
+State = require 'lib.state'
 
 function init()
-    State = State:new();
+    state = State:new();
 end
 
 ---Draw UI
@@ -16,14 +19,14 @@ end
 ---@param z integer key press: 1 - pressed, 0 - unpressed.
 function key(n, z)
     local pressed = (z == 1)
-    State:set_key_pressed(n, pressed)
-    State:change_context(n, pressed)
-    draw(State)
+    state:set_key_pressed(n, pressed)
+    state:change_context(n, pressed)
+    draw(state)
 end
 
 ---Norns shield encoders.
 ---@param n integer encoder number: 1, 2, 3.
 ---@param d delta encoder delta, clockwise is positive, counterclockwise is negative.
 function enc(n, d)
-    draw(State)
+    draw(state)
 end
