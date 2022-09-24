@@ -1,6 +1,6 @@
 ---@diagnostic disable: lowercase-global
 
-require("src/state")
+require 'src.state'
 
 function init()
     State = State:new();
@@ -26,15 +26,3 @@ function enc(n, d)
     State:set_enc_value(n, d)
     draw(State)
 end
-
-init()
-key(3, 1)
-key(3, 0)
-key(2, 1)
-key(2, 0)
-key(0, 2)
-
-enc(3, 1)
-enc(3, 3)
-enc(2, 1)
-enc(2, 2)

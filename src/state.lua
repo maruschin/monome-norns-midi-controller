@@ -31,9 +31,9 @@ function Param:new(o)
 end
 
 ---Установить новое значение параметра
----@param d delta
-function Param:set_value(d)
-    local value = self.value + d
+---@param delta delta
+function Param:add_value(delta)
+    local value = self.value + delta
     self.value = math.min(math.max(self.min, value), self.max)
 end
 
@@ -61,5 +61,5 @@ end
 ---@param n encoders
 ---@param d delta
 function State:set_enc_value(n, d)
-    self.enc[n]:set_value(d)
+    self.enc[n]:add_value(d)
 end

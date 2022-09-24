@@ -14,8 +14,7 @@ tab_width = 4
 # optional space/tab
 indent_style = space
 indent_size = 4
-# none/single/double
-quote_style = none
+quote_style = single
 continuation_indent_size = 4
 detect_end_of_line = false
 max_line_length = 120
