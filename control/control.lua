@@ -1,10 +1,15 @@
+-- scriptname: Grid Controller
+-- v1.0.0 @Evgeny Maruschenko/Eugene Maruschin
 ---@diagnostic disable: lowercase-global
+---@diagnostic disable: undefined-global
+local success, State = pcall(include, 'lib/state')
+---@diagnostic enable: undefined-global
+if not success then
+    print('[INFO] Include: ' .. State)
+    State = require 'lib.state'
+end
 
-engine = {}
-engine.name = 'Controller'
-
-State = require 'lib.state'
-
+---Init function
 function init()
     state = State:new();
 end

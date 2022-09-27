@@ -1,4 +1,4 @@
-require 'main'
+require 'control'
 
 TestKeys = {}
 

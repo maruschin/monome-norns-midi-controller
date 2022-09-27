@@ -1,4 +1,4 @@
-require 'main'
+require 'control'
 
 TestParam = {}
 function TestParam:test_add_value()
