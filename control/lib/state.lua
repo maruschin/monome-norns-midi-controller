@@ -71,6 +71,11 @@ function GridColumn:new(o)
     return o
 end
 
+function GridColumn:repr()
+  print(self["ch"])
+  return 'ch: ' .. 'cc:'
+end
+
 ---@class Cursor
 ---@field context CONTEXT
 ---@field grid_position Param
