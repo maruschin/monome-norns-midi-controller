@@ -57,23 +57,18 @@ end
 ---@field ch Param midi channel 1-16.
 ---@field cc Param midi control change 0-119.
 ---@field value Param midi control change value 0-127.
-GridColumn = {
-    ch = Param:new { value = 1, min = 1, max = 16 },
-    cc = Param:new { value = 0, min = 0, max = 119 },
-    value = Param:new { value = 0, min = 0, max = 127 },
-}
+GridColumn = {}
 ---@param o table|nil
 ---@return GridColumn
-function GridColumn:new(o)
-    o = o or {}
+function GridColumn:new()
+    o = {
+        ch = Param:new { value = 1, min = 1, max = 16 },
+        cc = Param:new { value = 0, min = 0, max = 119 },
+        value = Param:new { value = 0, min = 0, max = 127 },
+    }
     setmetatable(o, self)
     self.__index = self
     return o
-end
-
-function GridColumn:repr()
-  print(self["ch"])
-  return 'ch: ' .. 'cc:'
 end
 
 ---@class Cursor
@@ -81,10 +76,11 @@ end
 ---@field grid_position Param
 Cursor = {}
 ---@return Cursor
-function Cursor:new()
+---@param columns_number integer
+function Cursor:new(columns_number)
     local o = {
         context = CONTEXT.GRID,
-        grid_position = Param:new { value = 1, min = 1, max = 4 },
+        grid_position = Param:new { value = 1, min = 1, max = columns_number },
     }
     setmetatable(o, self)
     self.__index = self
@@ -118,16 +114,16 @@ end
 State = {}
 ---@return State
 function State:new()
+    local columns_number = 16
     local o = {
         key = { KeyState:new(), KeyState:new(), KeyState:new(), },
-        cursor = Cursor:new(),
-        grid_columns = {
-            GridColumn:new(),
-            GridColumn:new(),
-            GridColumn:new(),
-            GridColumn:new(),
-        },
+        cursor = Cursor:new(columns_number),
+        grid_columns = {},
     }
+    for i = 1, columns_number do
+        o.grid_columns[i] = GridColumn:new()
+    end
+
     setmetatable(o, self)
     self.__index = self
     return o

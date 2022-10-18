@@ -18,4 +18,4 @@ run:
 		wwinder/norns-test-dummy
 
 test:
-	cd control && ./tests/run.lua -v
+	./tests/run.lua -v

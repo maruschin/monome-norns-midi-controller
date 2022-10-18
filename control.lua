@@ -10,68 +10,53 @@ if not success then
 end
 
 key2_pressed = 1
-local UI = require 'ui'
-local pages
-
-
----Save param value and settings.
----@class Param
----@field value integer value of param.
----@field min integer min of param value.
----@field max integer max of param value.
-Param = {}
----@param o table|nil
----@return Param
-function Param:new(o)
-    o = o or { value = 0, min = 0, max = 127 }
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
----Установить новое значение параметра
----@param delta delta
-function Param:add_value(delta)
-    local value = self.value + delta
-    self.value = math.min(math.max(self.min, value), self.max)
-end
-
----@class GridColumn
----@field ch Param midi channel 1-16.
----@field cc Param midi control change 0-119.
----@field value Param midi control change value 0-127.
-GridColumn = {
-    ch = Param:new { value = 1, min = 1, max = 16 },
-    cc = Param:new { value = 0, min = 0, max = 119 },
-    value = Param:new { value = 0, min = 0, max = 127 },
-}
----@param o table|nil
----@return GridColumn
-function GridColumn:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function GridColumn:repr()
-    return 'ch: ' .. self.ch.value .. ' cc: ' .. self.cc.value .. ' value: ' .. self.value.value
+local success, UI = pcall(require, 'ui')
+if not success then
+    UI = require 'mock.ui'
+    screen = require 'mock.screen'
 end
 
 ---Init function
 function init()
-    state = {}
-    for i = 1, 16 do state[i] = GridColumn:new() end
-    state_repr = {}
-    for i = 1, 16 do state_repr[i] = state[i]:repr() end
-    list = UI.ScrollingList.new(10, 10, 1, state_repr)
+    state = State:new()
+end
+
+
+function draw_column(x, y, row_num, column, active)
+    local level = active and 15 or 7
+    screen.level(level)
+    screen.move(x, y)
+    screen.text(row_num)
+    draw_line(x + 8, y-8, x + 8, y, level)
+    screen.move(x + 12, y)
+    screen.text("ch: " .. column["ch"].value)
+    screen.move(x + 37, y)
+    screen.text("cc: " .. column["cc"].value)
+    screen.move(x + 62, y)
+    screen.text("value: " .. column["value"].value)
+    screen.level(15)
+end
+
+function draw_line(x1, y1, x2, y2, level)
+    screen.level(level)
+    screen.line_width(1)
+    screen.move(x1, y1)
+    screen.line(x2, y2)
+    screen.close()
+    screen.stroke()
 end
 
 ---Draw UI
 function redraw()
+    local active_row_id = state.cursor.grid_position.value
     screen.clear()
-    list:set_index(key2_pressed)
-    list:redraw()
+    screen.aa(0)
+    screen.blend_mode(2)
+    --draw_line(13, 0, 13, 64, 7)
+    for row_id, column in ipairs(state.grid_columns) do
+      draw_column(5, (8*row_id - 2), row_id, column, row_id == active_row_id)
+      
+    end
     screen.update()
     print(key2_pressed)
 end
