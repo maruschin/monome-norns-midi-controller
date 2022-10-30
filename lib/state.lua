@@ -47,10 +47,15 @@ function Param:new(o)
 end
 
 ---Установить новое значение параметра
----@param delta delta
-function Param:add_value(delta)
-    local value = self.value + delta
+---@param value integer
+function Param:set(value)
     self.value = math.min(math.max(self.min, value), self.max)
+end
+
+---Добавить значение параметра
+---@param delta delta
+function Param:add(delta)
+    self:set(self.value + delta)
 end
 
 ---@class GridColumn
@@ -86,7 +91,6 @@ function Cursor:new(columns_number)
     self.__index = self
     return o
 end
-
 
 function Cursor:round_context()
     if self.context == CONTEXT.GRID then
@@ -160,23 +164,23 @@ function State:change_context(n, pressed)
     end
 end
 
----@param n encoders
+---Return active grid column.
+---@return GridColumn
+function State:get_active_column()
+    return self.grid_columns[self.cursor.grid_position.value]
+end
+
 ---@param delta integer
-function State:set_value(n, delta)
-    local grid_column_id = self.cursor.grid_position.value
-    local grid_column = self.grid_columns[grid_column_id]
-    if n == 2 then
-        if self.cursor.context == CONTEXT.GRID then
-            self.cursor.grid_position:add_value(delta)
-        elseif self.cursor.context == CONTEXT.CH then
-            grid_column.ch:add_value(delta)
-        elseif self.cursor.context == CONTEXT.CC then
-            grid_column.cc:add_value(delta)
-        elseif self.cursor.context == CONTEXT.VALUE then
-            grid_column.value:add_value(delta)
-        end
-    elseif n == 3 then
-        grid_column.value:add_value(delta)
+function State:set_value_by_context(delta)
+    local grid_column = self:get_active_column()
+    if self.cursor.context == CONTEXT.GRID then
+        self.cursor.grid_position:add(delta)
+    elseif self.cursor.context == CONTEXT.CH then
+        grid_column.ch:add(delta)
+    elseif self.cursor.context == CONTEXT.CC then
+        grid_column.cc:add(delta)
+    elseif self.cursor.context == CONTEXT.VALUE then
+        grid_column.value:add(delta)
     end
 end
 
