@@ -2,7 +2,6 @@
 
 LU = require 'luaunit'
 
-require 'tests.test_main'
 require 'tests.test_state'
 
 LU.LuaUnit.verbosity = 2

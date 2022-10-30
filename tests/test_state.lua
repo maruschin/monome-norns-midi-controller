@@ -1,4 +1,4 @@
-require 'control'
+require 'lib.state'
 
 TestParam = {}
 function TestParam:test_add_value()
@@ -48,11 +48,11 @@ function TestState:test_change_grid_position()
     local state = State:new()
     LU.assertEquals(state.cursor.context, CONTEXT.GRID)
     LU.assertEquals(state.cursor.grid_position.value, 1)
-    state:set_value(2, 3)
-    LU.assertEquals(state.cursor.grid_position.value, 4)
+    state:set_value(2, 15)
+    LU.assertEquals(state.cursor.grid_position.value, 16)
     state:set_value(2, 1)
-    LU.assertEquals(state.cursor.grid_position.value, 4)
-    state:set_value(2, -3)
+    LU.assertEquals(state.cursor.grid_position.value, 16)
+    state:set_value(2, -15)
     LU.assertEquals(state.cursor.grid_position.value, 1)
     state:set_value(2, -1)
     LU.assertEquals(state.cursor.grid_position.value, 1)
@@ -145,7 +145,7 @@ function TestState:test_mixed_change()
     LU.assertEquals(state.cursor.context, CONTEXT.VALUE)
     state:set_value(2, 75)
 
-    LU.assertEquals(state.grid_columns[2].ch.value, 8)
-    LU.assertEquals(state.grid_columns[2].cc.value, 35)
-    LU.assertEquals(state.grid_columns[2].value.value, 75)
+    LU.assertEquals(state.grid_columns[1].ch.value, 8)
+    LU.assertEquals(state.grid_columns[1].cc.value, 35)
+    LU.assertEquals(state.grid_columns[1].value.value, 75)
 end
