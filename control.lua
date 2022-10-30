@@ -1,5 +1,11 @@
 -- scriptname: Grid Controller
--- v1.0.0 @Evgeny Maruschenko/Eugene Maruschin
+-- v1.0.0
+-- Eugene Maruschin
+-- Sasha DZA
+--
+--
+--
+--
 ---@diagnostic disable: lowercase-global
 ---@diagnostic disable: undefined-global
 local success, State = pcall(include, 'lib/state')
@@ -99,22 +105,25 @@ function send_midi_cc()
 end
 
 g = grid.connect()
-g.key = function(x, y, z)
+---Norns grid key hook.
+---@param x integer
+---@param y integer
+---@param z integer key press: 1 - pressed, 0 - unpressed.
+function g.key(x, y, z)
     local pressed = not (z == 0)
     if pressed then
         value = (8 - y) * 18
         state.grid_columns[x].value:set(value)
 
-        for i = 1, 8 do
-            --g:led(x, i, (i < y) and 4 or (i == y) and 15 or 0)
-            g:led(x, i, (i <= x) and x or 0)
+        for i = 8, 1, -1 do
+            --g:led(x, i, (i > y) and 4 or (i == y) and 15 or 0)
+            g:led(x, i, math.min((i >= y) and x or 0, 15))
         end
     end
     g:refresh()
     send_midi_cc()
     redraw()
 end
-
 
 ---Norns shield keys.
 ---@param n integer key number: 1, 2, 3.
