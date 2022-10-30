@@ -102,10 +102,12 @@ g = grid.connect()
 g.key = function(x, y, z)
     local pressed = not (z == 0)
     if pressed then
-        state.grid_columns[x].value:set(y * 16 - 1)
+        value = (8 - y) * 18
+        state.grid_columns[x].value:set(value)
 
         for i = 1, 8 do
-            g:led((i < y) and 4 or (i == y) and 15 or 0)
+            --g:led(x, i, (i < y) and 4 or (i == y) and 15 or 0)
+            g:led(x, i, (i <= x) and x or 0)
         end
     end
     g:refresh()
