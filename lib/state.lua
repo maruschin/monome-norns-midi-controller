@@ -87,6 +87,19 @@ function Cursor:new(columns_number)
     return o
 end
 
+
+function Cursor:round_context()
+    if self.context == CONTEXT.GRID then
+        self.context = CONTEXT.CH
+    elseif self.context == CONTEXT.CH then
+        self.context = CONTEXT.CC
+    elseif self.context == CONTEXT.CC then
+        self.context = CONTEXT.VALUE
+    elseif self.context == CONTEXT.VALUE then
+        self.context = CONTEXT.GRID
+    end
+end
+
 function Cursor:up_context()
     if self.context == CONTEXT.GRID then
         self.context = CONTEXT.CH

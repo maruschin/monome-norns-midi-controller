@@ -9,17 +9,24 @@ if not success then
     State = require 'lib.state'
 end
 
-key2_pressed = 1
+
 local success, UI = pcall(require, 'ui')
 if not success then
     UI = require 'mock.ui'
     screen = require 'mock.screen'
 end
 
+
+---@type State
+local state
+
+
 ---Init function
 function init()
     state = State:new()
+    g = grid.connect()
 end
+
 
 ---Draw line.
 ---@param x1 integer
@@ -36,6 +43,7 @@ function draw_line(x1, y1, x2, y2, level)
     screen.stroke()
 end
 
+
 ---Draw text.
 ---@param x integer
 ---@param y integer
@@ -47,6 +55,7 @@ function draw_text(x, y, text, level)
     screen.text(text)
 end
 
+
 ---Draw screen row.
 ---@param x integer
 ---@param y integer
@@ -54,13 +63,14 @@ end
 ---@param column GridColumn Grid column.
 ---@param active boolean
 function draw_row(x, y, row_num, column, active)
-    local level = active and 15 or 7
+    local level = active and 16 or 8
     draw_text(x, y, row_num, level)
     draw_line(x + 12, y - 8, x + 12, y, level)
     draw_text(x + 16, y, 'ch: ' .. column['ch'].value, level)
     draw_text(x + 44, y, 'cc: ' .. column['cc'].value, level)
     draw_text(x + 76, y, 'value: ' .. column['value'].value, level)
 end
+
 
 ---Draw UI
 function redraw()
@@ -84,16 +94,57 @@ function redraw()
     screen.update()
 end
 
+
+m = midi.connect()
+---Send MIDI CC
+function send_midi_cc()
+    for _, column in ipairs(state.grid_columns) do
+        m:cc(column.cc.value, column.value.value, column.ch.value)
+    end
+end
+
+
+g = grid.connect()
+g.key = function(x, y, z)
+    local pressed = not (z == 0)
+    if pressed then
+        state.grid_columns[x]:set_value(y * 16 - 1)
+
+        for i = 1, 8 do
+            if i < y then
+                g:led(x, i, 4)
+            elseif i == y then
+                g:led(x, i, 15)
+            else
+                g:led(x, i, 0)
+            end
+        end
+    end
+    g:refresh()
+    send_midi_cc()
+    redraw()
+end
+
+
 ---Norns shield keys.
 ---@param n integer key number: 1, 2, 3.
 ---@param z integer key press: 1 - pressed, 0 - unpressed.
 function key(n, z)
-    local pressed = (z == 1)
+    local pressed = not (z == 0)
     local key1, key2, key3 = (n == 1), (n == 2), (n == 3)
+    if key1 and pressed then state.cursor:round_context() end
     if key2 and pressed then state.cursor.grid_position:add_value(1) end
     if key3 and pressed then state.cursor.grid_position:add_value(-1) end
+    send_midi_cc()
     redraw()
 end
+
+
+function key_context()
+    key(1, 1)
+    key(1, 0)
+end
+
 
 function key_down()
     key(2, 1)
@@ -105,11 +156,20 @@ function key_up()
     key(3, 0)
 end
 
+
 ---Norns shield encoders.
 ---@param n integer encoder number: 1, 2, 3.
 ---@param d delta encoder delta, clockwise is positive, counterclockwise is negative.
 function enc(n, d)
+    local enc1, enc2, enc3 = (n == 1), (n == 2), (n == 3)
+    local active_row_id = state.cursor.grid_position.value
+    if enc1 then
+        state.grid_columns[active_row_id].ch:set_value()
+    end
+    send_midi_cc()
+    redraw()
 end
+
 
 ---Clean up function
 function cleanup()
