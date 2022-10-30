@@ -140,32 +140,15 @@ function key(n, z)
 end
 
 
-function key_context()
-    key(1, 1)
-    key(1, 0)
-end
-
-
-function key_down()
-    key(2, 1)
-    key(2, 0)
-end
-
-function key_up()
-    key(3, 1)
-    key(3, 0)
-end
-
-
 ---Norns shield encoders.
 ---@param n integer encoder number: 1, 2, 3.
 ---@param d delta encoder delta, clockwise is positive, counterclockwise is negative.
-function enc(n, d)
+function enc(n, delta)
     local enc1, enc2, enc3 = (n == 1), (n == 2), (n == 3)
     local active_row_id = state.cursor.grid_position.value
-    if enc1 then
-        state.grid_columns[active_row_id].ch:set_value()
-    end
+    if enc1 then state.grid_columns[active_row_id].ch:add_value(delta) end
+    if enc2 then state.grid_columns[active_row_id].cc:add_value(delta) end
+    if enc3 then state.grid_columns[active_row_id].value:add_value(delta) end
     send_midi_cc()
     redraw()
 end
