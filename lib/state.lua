@@ -60,7 +60,7 @@ end
 GridColumn = {}
 ---@param o table|nil
 ---@return GridColumn
-function GridColumn:new()
+function GridColumn:new(o)
     o = {
         ch = Param:new { value = 1, min = 1, max = 16 },
         cc = Param:new { value = 0, min = 0, max = 119 },

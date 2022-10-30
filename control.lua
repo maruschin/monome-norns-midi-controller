@@ -21,22 +21,12 @@ function init()
     state = State:new()
 end
 
-
-function draw_column(x, y, row_num, column, active)
-    local level = active and 15 or 7
-    screen.level(level)
-    screen.move(x, y)
-    screen.text(row_num)
-    draw_line(x + 8, y-8, x + 8, y, level)
-    screen.move(x + 12, y)
-    screen.text("ch: " .. column["ch"].value)
-    screen.move(x + 37, y)
-    screen.text("cc: " .. column["cc"].value)
-    screen.move(x + 62, y)
-    screen.text("value: " .. column["value"].value)
-    screen.level(15)
-end
-
+---Draw line.
+---@param x1 integer
+---@param y1 integer
+---@param x2 integer
+---@param y2 integer
+---@param level integer
 function draw_line(x1, y1, x2, y2, level)
     screen.level(level)
     screen.line_width(1)
@@ -46,19 +36,52 @@ function draw_line(x1, y1, x2, y2, level)
     screen.stroke()
 end
 
+---Draw text.
+---@param x integer
+---@param y integer
+---@param text string|integer
+---@param level integer
+function draw_text(x, y, text, level)
+    screen.level(level)
+    screen.move(x, y)
+    screen.text(text)
+end
+
+---Draw screen row.
+---@param x integer
+---@param y integer
+---@param row_num integer Row number.
+---@param column GridColumn Grid column.
+---@param active boolean
+function draw_row(x, y, row_num, column, active)
+    local level = active and 15 or 7
+    draw_text(x, y, row_num, level)
+    draw_line(x + 12, y - 8, x + 12, y, level)
+    draw_text(x + 16, y, 'ch: ' .. column['ch'].value, level)
+    draw_text(x + 44, y, 'cc: ' .. column['cc'].value, level)
+    draw_text(x + 76, y, 'value: ' .. column['value'].value, level)
+end
+
 ---Draw UI
 function redraw()
     local active_row_id = state.cursor.grid_position.value
+
+    local row_id_for_scroll = 4
+    local row_shift = (
+        (active_row_id < row_id_for_scroll) and 0
+            or (active_row_id >= (16 - row_id_for_scroll)) and 8
+            or (active_row_id - row_id_for_scroll)
+        )
+
     screen.clear()
     screen.aa(0)
     screen.blend_mode(2)
-    --draw_line(13, 0, 13, 64, 7)
+
     for row_id, column in ipairs(state.grid_columns) do
-      draw_column(5, (8*row_id - 2), row_id, column, row_id == active_row_id)
-      
+        draw_row(4, (8 * (row_id - row_shift) - 2), row_id, column, row_id == active_row_id)
     end
+
     screen.update()
-    print(key2_pressed)
 end
 
 ---Norns shield keys.
@@ -66,16 +89,20 @@ end
 ---@param z integer key press: 1 - pressed, 0 - unpressed.
 function key(n, z)
     local pressed = (z == 1)
-    local key1 = n == 1
-    local key2 = n == 2
-    local key3 = n == 3
-    if key2 and pressed then
-        key2_pressed = key2_pressed + 1
-    end
-    if key3 and pressed then
-        key2_pressed = key2_pressed - 1
-    end
+    local key1, key2, key3 = (n == 1), (n == 2), (n == 3)
+    if key2 and pressed then state.cursor.grid_position:add_value(1) end
+    if key3 and pressed then state.cursor.grid_position:add_value(-1) end
     redraw()
+end
+
+function key_down()
+    key(2, 1)
+    key(2, 0)
+end
+
+function key_up()
+    key(3, 1)
+    key(3, 0)
 end
 
 ---Norns shield encoders.
